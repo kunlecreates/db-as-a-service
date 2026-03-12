@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: __APP_NAME__
+spec:
+  serviceName: __APP_NAME__-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: __APP_NAME__
+  template:
+    metadata:
+      labels:
+        app: __APP_NAME__
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: __APP_NAME__
+          image: __IMAGE__
+          ports:
+            - containerPort: 1433
+              name: tds
+          env:
+            - name: MSSQL_PID
+              value: "__MSSQL_PID__"
+            - name: ACCEPT_EULA
+              value: "Y"
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mssql
+                  key: MSSQL_SA_PASSWORD
+          resources:
+            requests:
+              memory: "__MEM_REQUEST__"
+              cpu: "__CPU_REQUEST__"
+            limits:
+              memory: "__MEM_LIMIT__"
+              cpu: "__CPU_LIMIT__"
+          volumeMounts:
+            - name: mssqldb
+              mountPath: /var/opt/mssql
+      volumes:
+        - name: mssqldb
+          persistentVolumeClaim:
+            claimName: __PVC_NAME__

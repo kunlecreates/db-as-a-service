@@ -1,0 +1,24 @@
+apiVersion: mysql.oracle.com/v2
+kind: MySQLBackup
+metadata:
+  name: __BACKUP_JOB_NAME__
+spec:
+  clusterName: __CLUSTER_NAME__
+  backupProfileName: __BACKUP_PROFILE_NAME__
+
+# Usage:
+# 1) Ensure your InnoDBCluster defines a backupProfiles entry with a PVC:
+#    spec:
+#      backupProfiles:
+#        - name: pvc-backups
+#          dumpInstance:
+#            storage:
+#              persistentVolumeClaim:
+#                claimName: mysql-backups
+# 2) Create the PVC referenced above (see 25-backup-pvc.yaml) and apply the cluster.
+# 3) Fill in placeholders below and apply this manifest to run a one-off backup:
+#    - __BACKUP_JOB_NAME__       (e.g., backup-20251113-001)
+#    - __CLUSTER_NAME__          (e.g., mysql)
+#    - __BACKUP_PROFILE_NAME__   (e.g., pvc-backups)
+#
+# Docs: https://dev.mysql.com/doc/mysql-operator/en/mysql-operator-backups.html

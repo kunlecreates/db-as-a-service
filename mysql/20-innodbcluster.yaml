@@ -1,0 +1,29 @@
+apiVersion: mysql.oracle.com/v2
+kind: InnoDBCluster
+metadata:
+  name: __CLUSTER_NAME__
+spec:
+  secretName: __SECRET_NAME__
+  tlsUseSelfSigned: true
+  instances: 1 # SERVERS
+  version: __MYSQL_VERSION__
+  router:
+    instances: 1 # ROUTER_INSTANCES
+  datadirVolumeClaimTemplate:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: __STORAGE_SIZE__
+  service:
+    type: __SERVICE_TYPE__
+
+  # Backup configuration using a PersistentVolumeClaim (PVC) per MySQL Operator docs
+  # https://dev.mysql.com/doc/mysql-operator/en/mysql-operator-backups.html
+  backupProfiles:
+    - name: __BACKUP_PROFILE_NAME__
+      dumpInstance:
+        storage:
+          persistentVolumeClaim:
+            # This PVC must exist beforehand; see 25-backup-pvc.yaml
+            claimName: __PVC_NAME__

@@ -1,0 +1,12 @@
+# Ignore local environment files and secrets
+.env
+*.env
+**/.env
+*.env.local
+.envrc
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

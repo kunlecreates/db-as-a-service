@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: __PVC_NAME__
+  # namespace intentionally omitted; apply with the same namespace context as the cluster
+spec:
+  storageClassName: __STORAGE_CLASS_NAME__
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: __STORAGE_SIZE__

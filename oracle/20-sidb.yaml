@@ -1,0 +1,45 @@
+apiVersion: database.oracle.com/v4
+kind: SingleInstanceDatabase
+metadata:
+  name: __SIDB_NAME__
+  namespace: __NAMESPACE__
+spec:
+  # Database identity
+  sid: __SID__
+  edition: __EDITION__   # enterprise|standard|express|free
+  createAs: primary
+
+  # Admin password secret
+  adminPassword:
+    secretName: __ADMIN_SECRET_NAME__
+    secretKey: oracle_pwd
+    keepSecret: true
+
+  # Character set and PDB
+  charset: AL32UTF8
+  pdbName: __PDB_NAME__
+
+  # Archivelog/Flashback options
+  archiveLog: false
+  flashBack: false
+  forceLog: false
+
+  # Image source
+  image:
+    pullFrom: __IMAGE_PULL_FROM__
+    pullSecrets: __IMAGE_PULL_SECRET__
+    prebuiltDB: false
+
+  # Persistence / storage
+  persistence:
+    size: __STORAGE_SIZE__
+    setWritePermissions: true
+    storageClass: __STORAGE_CLASS_NAME__
+    accessMode: "__ACCESS_MODE__"
+
+  # Service exposure: internal ClusterIP (no external NodePort)
+  loadBalancer: false
+
+  # Misc
+  serviceAccountName: default
+  replicas: __REPLICAS__
