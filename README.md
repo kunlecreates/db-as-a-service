@@ -2,16 +2,16 @@
 
 > **Database-as-a-Service implementation for enterprise microservices applications**
 >
-> Production-grade Kubernetes deployments for SQL Server 2022, MySQL 8 InnoDBCluster,
-> Oracle Database 23c Free, and PostgreSQL 17 — with automated provisioning,
+> Production-grade Kubernetes deployments for SQL Server 2022, PostgreSQL 17,
+> Oracle Database 23c Free, and MySQL 8 InnoDBCluster — with automated provisioning,
 > least-privilege security, and a complete schema lifecycle for the ShopEase
 > e-commerce platform.
 
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.28%2B-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 [![SQL Server](https://img.shields.io/badge/SQL%20Server-2022-CC2927?logo=microsoftsqlserver&logoColor=white)](mssql/)
-[![MySQL](https://img.shields.io/badge/MySQL-8.4-4479A1?logo=mysql&logoColor=white)](mysql/)
-[![Oracle DB](https://img.shields.io/badge/Oracle%20DB-23c%20Free-F80000?logo=oracle&logoColor=white)](oracle/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)](postgres/)
+[![Oracle DB](https://img.shields.io/badge/Oracle%20DB-23c%20Free-F80000?logo=oracle&logoColor=white)](oracle/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.4-4479A1?logo=mysql&logoColor=white)](mysql/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#license)
 
 ---
@@ -29,9 +29,9 @@
 - [Quick Start](#quick-start)
 - [Datastores](#datastores)
   - [SQL Server 2022 — Order Service](#sql-server-2022--order-service)
-  - [MySQL 8 InnoDBCluster — Product Service](#mysql-8-innodbcluster--product-service)
+  - [PostgreSQL 17 — Product Service](#postgresql-17--product-service)
   - [Oracle Database 23c Free — User Service](#oracle-database-23c-free--user-service)
-  - [PostgreSQL 17 — Product Service \(Alternative\)](#postgresql-17--product-service-alternative)
+  - [MySQL 8 InnoDBCluster — Product Service \(Alternative\)](#mysql-8-innodbcluster--product-service-alternative)
 - [Schema and Seed Loading](#schema-and-seed-loading)
 - [Security Principles](#security-principles)
 - [Configuration Reference](#configuration-reference)
@@ -51,8 +51,8 @@ schema-loaded, seeded, and torn down with a single command.
 
 **What this repository delivers:**
 
-- Kubernetes manifests and deploy scripts for **SQL Server 2022**, **MySQL 8 InnoDBCluster**,
-  **Oracle Database 23c Free**, and **PostgreSQL 17**
+- Kubernetes manifests and deploy scripts for **SQL Server 2022**, **PostgreSQL 17**,
+  **Oracle Database 23c Free**, and **MySQL 8 InnoDBCluster**
 - A consistent _deploy → schema-load → seed → cleanup_ lifecycle for every engine
 - **Security-first by design** — no committed credentials, dedicated least-privilege
   application users per service, and `ClusterIP`-only exposure by default
@@ -76,20 +76,20 @@ scripts for each ShopEase service.
  │  auth · RBAC · tokens  │  catalogue · SKUs ·  │  carts · orders ·        │
  │  refresh · login audit │  inventory · search  │  payments                │
  └───────────┬────────────┴──────────┬───────────┴────────────┬─────────────┘
-             │                       │                         │
-             ▼                       ▼                         ▼
+             │                       │                        │
+             ▼                       ▼                        ▼
  ┌───────────────────┐   ┌───────────────────┐   ┌────────────────────────┐
- │  Oracle DB 23c    │   │    MySQL 8.4       │   │   SQL Server 2022      │
- │  Free Edition     │   │    InnoDBCluster  │   │   StatefulSet          │
- │  oracle-system    │   │    mysql-system   │   │   mssql-system         │
- │  Port: 1521       │   │    Port: 6446 (RW)│   │   Port: 1433           │
- └───────────────────┘   └────────┬──────────┘   └────────────────────────┘
+ │  Oracle DB 23c    │   │   PostgreSQL 17   │   │   SQL Server 2022      │
+ │  Free Edition     │   │   Bitnami Helm    │   │   StatefulSet          │
+ │  oracle-system    │   │   postgres-system │   │   mssql-system         │
+ │  Port: 1521       │   │   Port: 5432      │   │   Port: 1433           │
+ └───────────────────┘   └──────────┬────────┘   └────────────────────────┘
                                (or alternate)
-                          ┌──────▼────────────┐
-                          │   PostgreSQL 17    │
-                          │   Bitnami Helm     │
-                          │   postgres-system  │
-                          │   Port: 5432       │
+                          ┌─────────▼─────────┐
+                          │    MySQL 8.4      │
+                          │   InnoDBCluster   │
+                          │   mysql-system    │
+                          │  Port: 6446 (RW)  │
                           └───────────────────┘
 ```
 
@@ -115,7 +115,7 @@ db-services/
 │   ├── cleanup-mssql.sh
 │   └── README.md
 │
-├── mysql/                          # MySQL 8.4 InnoDBCluster — product-service
+├── mysql/                          # MySQL 8.4 InnoDBCluster — product-service (alternative)
 │   ├── 00-namespace.yaml
 │   ├── 10-secret.yaml
 │   ├── 20-innodbcluster.yaml
@@ -135,7 +135,7 @@ db-services/
 │   ├── cleanup-oracle.sh
 │   └── README.md
 │
-├── postgres/                       # PostgreSQL 17 — product-service (alternative)
+├── postgres/                       # PostgreSQL 17 — product-service
 │   ├── deploy-postgres.sh          # Provision via Bitnami Helm chart
 │   ├── load-postgres-schemas.sh
 │   ├── seed-postgres.sh
@@ -159,8 +159,8 @@ workload, following the **database-per-service** pattern.
 | Service | Database Engine | Namespace | Deployment Method | Application Schema |
 |---|---|---|---|---|
 | `user-service` | Oracle DB 23c Free | `oracle-system` | Oracle DB Operator + SIDB CR | `USER_SVC` schema in `FREEPDB1` |
-| `product-service` | MySQL 8.4 InnoDBCluster | `mysql-system` | MySQL Operator (Helm) | `product_svc` database |
-| `product-service` _(alt)_ | PostgreSQL 17 | `postgres-system` | Bitnami Helm chart | `product_svc` schema |
+| `product-service` | PostgreSQL 17 | `postgres-system` | Bitnami Helm chart | `product_svc` schema |
+| `product-service` _(alt)_ | MySQL 8.4 InnoDBCluster | `mysql-system` | MySQL Operator (Helm) | `product_svc` database |
 | `order-service` | SQL Server 2022 | `mssql-system` | Kubernetes StatefulSet | `order_svc` schema |
 
 ### Schema Highlights
@@ -186,7 +186,7 @@ Manages all identity, authentication, and authorisation for the platform.
   log aggregation infrastructure.
 - Baseline roles (`customer`, `admin`) are seeded idempotently using a `MERGE` statement.
 
-#### product-service → MySQL 8.4 / PostgreSQL 17
+#### product-service → PostgreSQL 17 / MySQL 8.4
 
 Manages the product catalogue, inventory, and stock movement audit trail.
 
@@ -201,11 +201,11 @@ Manages the product catalogue, inventory, and stock movement audit trail.
 **Design notes:**
 - Monetary values are stored as **integer cents** (`price_cents BIGINT`) to eliminate
   floating-point rounding errors across currencies.
-- The `attributes` column (`JSON` in MySQL, `JSONB` in PostgreSQL) captures per-product
+- The `attributes` column (`JSONB` in PostgreSQL, `JSON` in MySQL) captures per-product
   flexible metadata — size, colour, unit — without requiring schema migrations.
-- Full-text search is first-class: MySQL uses a `FULLTEXT` index on `name` and
-  `description`; PostgreSQL maintains a `search_vector` (`TSVECTOR`) column updated
-  automatically by a `BEFORE INSERT OR UPDATE` trigger.
+- Full-text search is first-class: PostgreSQL maintains a `search_vector` (`TSVECTOR`)
+  column updated automatically by a `BEFORE INSERT OR UPDATE` trigger; MySQL uses a
+  `FULLTEXT` index on `name` and `description`.
 - Seed data ships 10 grocery products with initial inventory, inserted idempotently via
   `ON CONFLICT DO UPDATE` (PostgreSQL) and upsert-safe patterns (MySQL).
 
@@ -238,8 +238,8 @@ never connects as an admin or migration account at runtime.
 | Service | DB Role | DB User / Login | Permissions |
 |---|---|---|---|
 | `order-service` | `order_service_role` | `order_app` (login: `order_app_login`) | `SELECT, INSERT, UPDATE, DELETE ON SCHEMA::order_svc` |
-| `product-service` (MySQL) | `product_service_role` | `product_app@%` | `SELECT, INSERT, UPDATE, DELETE ON product_svc.*` + `REQUIRE SSL` |
 | `product-service` (PG) | `product_service_role` | `product_app` | `SELECT, INSERT, UPDATE, DELETE` on all tables in `product_svc` |
+| `product-service` (MySQL) | `product_service_role` | `product_app@%` | `SELECT, INSERT, UPDATE, DELETE ON product_svc.*` + `REQUIRE SSL` |
 | `user-service` (Oracle) | `USER_SVC_ROLE` | `USER_SVC_APP` | Object-level CRUD on `USER_SVC`-owned tables + `CREATE SESSION` only |
 
 > Schema migrations use a separate, time-bound migration account.
@@ -256,7 +256,7 @@ passwords never touch disk, Git history, or command-line argument lists.
 | Requirement | Minimum Version | Notes |
 |---|---|---|
 | `kubectl` or `microk8s kubectl` | 1.28+ | Must point at a running cluster |
-| `helm` | v3.x | MySQL Operator, PostgreSQL (Bitnami), Oracle cert-manager |
+| `helm` | v3.x | PostgreSQL (Bitnami), MySQL Operator, Oracle cert-manager |
 | `bash` | 4.x | All deploy, schema-load, and cleanup scripts |
 | A default `StorageClass` | — | For dynamic PVC provisioning; override via `STORAGE_CLASS` env var |
 | Oracle Container Registry account | — | Required for Oracle image pulls — accept the license at [container-registry.oracle.com](https://container-registry.oracle.com) |
@@ -278,14 +278,14 @@ prompted interactively — no secrets are stored in files or committed to source
 # SQL Server 2022 — order-service
 bash mssql/deploy-mssql.sh
 
-# MySQL 8 InnoDBCluster — product-service
-bash mysql/deploy-mysql.sh
+# PostgreSQL 17 — product-service
+bash postgres/deploy-postgres.sh
 
 # Oracle DB 23c Free — user-service (requires Oracle Container Registry credentials)
 bash oracle/deploy-oracle.sh
 
-# PostgreSQL 17 — product-service (alternative)
-bash postgres/deploy-postgres.sh
+# MySQL 8 InnoDBCluster — product-service (alternative)
+bash mysql/deploy-mysql.sh
 ```
 
 After provisioning, apply the ShopEase schemas and seed data:
@@ -333,26 +333,26 @@ Full documentation: [mssql/README.md](mssql/README.md)
 
 ---
 
-### MySQL 8 InnoDBCluster — Product Service
+### PostgreSQL 17 — Product Service
 
 | Setting | Value |
 |---|---|
-| Namespace | `mysql-system` |
-| Operator Namespace | `mysql-operator-system` |
-| Workload | `InnoDBCluster` (StatefulSet + Router managed by MySQL Operator) |
-| MySQL Version | `8.4.0` (override: `MYSQL_VERSION`) |
-| In-cluster DNS (RW) | `mysql.mysql-system.svc.cluster.local:6446` |
-| Operator Chart | `mysql-operator` v2.1.9 (pinnable via `OPERATOR_CHART_VERSION`) |
-| Default PVC | 8 Gi (override: `STORAGE_SIZE`) |
+| Namespace | `postgres-system` |
+| Helm Release | `postgresql` |
+| Workload | `StatefulSet` (Bitnami chart) |
+| Chart | `oci://registry-1.docker.io/bitnamicharts/postgresql` |
+| In-cluster DNS | `postgresql.postgres-system.svc.cluster.local:5432` |
+| HA Mode | `HA=true` enables `postgresql-ha` (Pgpool-II + Repmgr) |
+| Default PVC | 8 Gi (override: `PVC_SIZE`) |
 
 **Workstation access via port-forward:**
 
 ```bash
-kubectl -n mysql-system port-forward svc/mysql 3306:6446
-mysql -h 127.0.0.1 -P 3306 -u root -p
+kubectl -n postgres-system port-forward svc/postgresql 5432:5432
+PGPASSWORD=<password> psql -h 127.0.0.1 -p 5432 -U postgres
 ```
 
-Full documentation: [mysql/README.md](mysql/README.md)
+Full documentation: [postgres/README.md](postgres/README.md)
 
 ---
 
@@ -380,26 +380,26 @@ Full documentation: [oracle/README.md](oracle/README.md)
 
 ---
 
-### PostgreSQL 17 — Product Service (Alternative)
+### MySQL 8 InnoDBCluster — Product Service (Alternative)
 
 | Setting | Value |
 |---|---|
-| Namespace | `postgres-system` |
-| Helm Release | `postgresql` |
-| Workload | `StatefulSet` (Bitnami chart) |
-| Chart | `oci://registry-1.docker.io/bitnamicharts/postgresql` |
-| In-cluster DNS | `postgresql.postgres-system.svc.cluster.local:5432` |
-| HA Mode | `HA=true` enables `postgresql-ha` (Pgpool-II + Repmgr) |
-| Default PVC | 8 Gi (override: `PVC_SIZE`) |
+| Namespace | `mysql-system` |
+| Operator Namespace | `mysql-operator-system` |
+| Workload | `InnoDBCluster` (StatefulSet + Router managed by MySQL Operator) |
+| MySQL Version | `8.4.0` (override: `MYSQL_VERSION`) |
+| In-cluster DNS (RW) | `mysql.mysql-system.svc.cluster.local:6446` |
+| Operator Chart | `mysql-operator` v2.1.9 (pinnable via `OPERATOR_CHART_VERSION`) |
+| Default PVC | 8 Gi (override: `STORAGE_SIZE`) |
 
 **Workstation access via port-forward:**
 
 ```bash
-kubectl -n postgres-system port-forward svc/postgresql 5432:5432
-PGPASSWORD=<password> psql -h 127.0.0.1 -p 5432 -U postgres
+kubectl -n mysql-system port-forward svc/mysql 3306:6446
+mysql -h 127.0.0.1 -P 3306 -u root -p
 ```
 
-Full documentation: [postgres/README.md](postgres/README.md)
+Full documentation: [mysql/README.md](mysql/README.md)
 
 ---
 
@@ -414,9 +414,9 @@ post-apply verification.
 | Engine | Schema | Security | Seed | Rollback |
 |---|---|---|---|---|
 | SQL Server | `db-schemas/mssql/order-service/schema.sql` | `security.sql` | `01-seed.sql` | `02-rollback.sql` |
-| MySQL | `db-schemas/mysql/product-service/schema.sql` | `security.sql` | — | — |
-| Oracle | `db-schemas/oracle/user-service/schema.sql` | `security.sql` | `01-seed.sql` | `02-rollback.sql` |
 | PostgreSQL | `db-schemas/postgres/product-service/schema.sql` | `security.sql` | `01-seed.sql` | `02-rollback.sql` |
+| Oracle | `db-schemas/oracle/user-service/schema.sql` | `security.sql` | `01-seed.sql` | `02-rollback.sql` |
+| MySQL _(alt)_ | `db-schemas/mysql/product-service/schema.sql` | `security.sql` | — | — |
 
 ### In-Memory Password Substitution
 
@@ -447,7 +447,7 @@ directly from the Kubernetes `Secret` object via `kubectl get secret ... | base6
 | **Namespace isolation** | One Kubernetes namespace per engine: `mssql-system`, `mysql-system`, `oracle-system`, `postgres-system` |
 | **ClusterIP by default** | No database port is reachable outside the cluster without an explicit `SERVICE_TYPE` override |
 | **In-memory secret substitution** | `sed` pipelines substitute password placeholders at runtime — nothing is written to disk or shell history |
-| **SSL enforcement** | MySQL app user created with `REQUIRE SSL`; PostgreSQL security script recommends `scram-sha-256` + SSL in `pg_hba.conf` |
+| **SSL enforcement** | PostgreSQL security script recommends `scram-sha-256` + SSL in `pg_hba.conf`; MySQL app user created with `REQUIRE SSL` |
 | **No cross-service foreign keys** | External-reference columns (`user_ref`, `product_ref`) are plain strings — no FK constraints cross service boundaries |
 | **Authentication audit logging** | Oracle `login_audit` captures every authentication attempt including IP address, user agent, and outcome |
 | **Password hashing** | `users.password_hash` stores only bcrypt hashes — plaintext passwords are never persisted |
@@ -485,9 +485,9 @@ Secrets, and namespaces are deleted by default.
 
 ```bash
 bash mssql/cleanup-mssql.sh
-bash mysql/cleanup-mysql.sh
-bash oracle/cleanup-oracle.sh
 bash postgres/cleanup-postgres.sh
+bash oracle/cleanup-oracle.sh
+bash mysql/cleanup-mysql.sh
 ```
 
 > **Warning:** These scripts permanently delete persistent volumes and all database data
