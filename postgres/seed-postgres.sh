@@ -11,7 +11,7 @@ POD_NAME="${POD_NAME:-}"
 DB_NAME="${DB_NAME:-product_svc}"
 SECRET_NAME="${SECRET_NAME:-postgresql-auth}"
 SECRET_KEY="${SECRET_KEY:-postgres-password}"
-SEED_FILE="${SEED_FILE:-db-schemas/postgres/product-service/01-seed.sql}"
+SEED_FILE="${SEED_FILE:-../db-schemas/postgres/product-service/01-seed.sql}"
 
 if [[ ! -f "$SEED_FILE" ]]; then
   echo "[error] Seed file not found: $SEED_FILE" >&2

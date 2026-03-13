@@ -9,7 +9,7 @@ NAMESPACE="${NAMESPACE:-oracle-system}"
 SIDB_NAME="${SIDB_NAME:-oracledb}"
 PDB_NAME="${PDB_NAME:-FREEPDB1}"
 OWNER_USER="${OWNER_USER:-USER_SVC}"
-SEED_FILE="${SEED_FILE:-db-schemas/oracle/user-service/01-seed.sql}"
+SEED_FILE="${SEED_FILE:-../db-schemas/oracle/user-service/01-seed.sql}"
 
 if [[ ! -f "$SEED_FILE" ]]; then
   echo "[error] Seed file not found: $SEED_FILE" >&2
